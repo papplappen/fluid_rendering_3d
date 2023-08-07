@@ -10,6 +10,7 @@ pub(crate) mod vertex;
 use camera::Camera;
 use config::{Config, DEFAULT_DELTA_TIME};
 use env::Environment;
+use glam::{vec3, Vec3};
 use pollster::FutureExt;
 use render::RenderState;
 use simulation::SimulationState;
@@ -25,16 +26,26 @@ fn main() {
 
     let (camera, camera_bind_group_layout) = Camera::create_camera(&env.device, &env.config);
 
-    let render_state = RenderState::new(&env, camera_bind_group_layout, &config);
+    let (simulation_state, simulation_bind_group_layout) = SimulationState::create_simulation(
+        vec![vec3(50.0, 50.0, 50.0), vec3(100.0, 100.0, 100.0)],
+        &env.device,
+    );
+
+    let render_state = RenderState::new(
+        &env,
+        camera_bind_group_layout,
+        simulation_bind_group_layout,
+        &config,
+    );
 
     let state = State {
+        simulation_state,
         env,
         render_state,
         camera,
         config,
         delta_time: DEFAULT_DELTA_TIME,
         paused: true,
-        simulation_state: SimulationState::new(vec![]),
     };
 
     state.run(event_loop);

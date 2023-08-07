@@ -56,7 +56,7 @@ impl State {
                     }
                     // * RENDER
                     self.render_state.render_call(
-                        &self.simulation_state,
+                        &self.simulation_state.bind_group,
                         &self.env,
                         &self.camera.bind_group,
                     );

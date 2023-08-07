@@ -23,7 +23,28 @@ pub const SQUARE: [Vec3; 4] = [
         z: 0.,
     },
 ];
-
+// pub const SQUARE: [Vec3; 4] = [
+//     Vec3 {
+//         x: 0.,
+//         y: 0.,
+//         z: 0.,
+//     },
+//     Vec3 {
+//         x: 1600.,
+//         y: 0.,
+//         z: 0.,
+//     },
+//     Vec3 {
+//         x: 0.,
+//         y: 900.,
+//         z: 0.,
+//     },
+//     Vec3 {
+//         x: 1600.,
+//         y: 900.,
+//         z: 0.,
+//     },
+// ];
 #[repr(C)]
 #[derive(Debug, Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct Vertex {

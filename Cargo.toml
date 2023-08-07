@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 bytemuck = { version = "1.13", features = ["derive"] }
-glam = "0.24"
+glam = { version = "0.24", features = ["bytemuck"] }
 image = { version = "0.24.6", default-features = false, features = ["png"] }
 pollster = "0.3"
 rand = "0.8.5"

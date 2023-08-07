@@ -27,6 +27,7 @@ impl RenderState {
     pub fn new(
         env: &Environment,
         camera_bind_group_layout: BindGroupLayout,
+        simulation_bind_group_layout: BindGroupLayout,
         config: &Config,
     ) -> Self {
         // * CREATE VERTEX & INSTANCE BUFFERS
@@ -39,7 +40,11 @@ impl RenderState {
         let render_pipeline = Self::create_render_pipeline(
             &env.device,
             &env.config,
-            &[&camera_bind_group_layout, &config_bind_group_layout],
+            &[
+                &camera_bind_group_layout,
+                &config_bind_group_layout,
+                &simulation_bind_group_layout,
+            ],
         );
         Self {
             vertex_buffer,
@@ -50,7 +55,7 @@ impl RenderState {
 
     pub fn render_call(
         &self,
-        simulation_state: &SimulationState,
+        simulation_bind_group: &BindGroup,
         env: &Environment,
         camera_bind_group: &BindGroup,
     ) {
@@ -80,7 +85,7 @@ impl RenderState {
 
             render_pass.set_bind_group(0, camera_bind_group, &[]);
             render_pass.set_bind_group(1, &self.config_bind_group, &[]);
-
+            render_pass.set_bind_group(2, simulation_bind_group, &[]);
             render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
 
             render_pass.draw(0..SQUARE.len() as u32, 0..1)
