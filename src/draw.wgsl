@@ -1,5 +1,5 @@
 const MAX_DISTANCE = 200.;
-const MAX_STEPS: f32 = 200.;
+const MAX_STEPS: f32 = 100.;
 struct VertexOutput {
     @builtin(position) clip_position: vec4<f32>,
 };
@@ -16,7 +16,8 @@ struct Camera {
     screen_height: f32,
     up: vec3<f32>,
     screen_dist: f32,
-    view_matrix: mat4x4<f32>
+    view_matrix: mat4x4<f32>,
+    inverse_view_matrix: mat4x4<f32>
 }
 
 struct Config {
@@ -46,21 +47,67 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
 
     var ray_pos = vec3<f32>(0., 0., 0.);
     for (var i = 0u; i < 100u; i++) {
-        var min_dist = MAX_DISTANCE;
-        for (var j = 0u; j < arrayLength(&positions); j++) {
-            let pos = (camera.view_matrix * vec4<f32>(positions[j], 1.)).xyz;
-            let dist = distance(pos, ray_pos) - config.radius;
-            if dist < min_dist {
-                min_dist = dist;
-            }
-        }
+        let min_dist = log_sum_exp(ray_pos, camera.view_matrix, config.alpha);
         if min_dist >= MAX_DISTANCE {
             return vec4<f32>(1., 0., 0., 1.);
         }
-        if min_dist < 0.01 {
-            return vec4<f32>(0., 1., 0., 1.);
+        if min_dist < config.radius * 1.01 {
+            return camera.inverse_view_matrix * (vec4<f32>(normalize(log_sum_exp_grad(ray_pos, camera.view_matrix, config.alpha)), 0.0));
+            // return vec4<f32>(0., 1., 0., 1.);
         }
-        ray_pos += ray_dir * min_dist;
+        ray_pos += ray_dir * (min_dist - config.radius);
     }
     return vec4<f32>(0., 0., 1., 1.);
 }
+
+fn min_distance(ray_pos: vec3<f32>, view_matrix: mat4x4<f32>) -> f32 {
+    var minimum = 1. / 0.;
+    for (var i = 0u; i < arrayLength(&positions); i++) {
+        let pos = (camera.view_matrix * vec4<f32>(positions[i], 1.)).xyz;
+        let dist = distance(pos, ray_pos) ;
+        minimum = min(minimum, dist);
+    }
+    return minimum;
+}
+
+
+fn log_sum_exp(ray_pos: vec3<f32>, view_matrix: mat4x4<f32>, alpha: f32) -> f32 {
+    var res = 0.;
+
+    for (var i = 0u; i < arrayLength(&positions); i++) {
+        let pos = (camera.view_matrix * vec4<f32>(positions[i], 1.)).xyz;
+        let dist = distance(pos, ray_pos);
+        res += exp(alpha * dist);
+    }
+    return log(res) / alpha;
+}
+fn log_sum_exp_grad(ray_pos: vec3<f32>, view_matrix: mat4x4<f32>, alpha: f32) -> vec3<f32> {
+
+    var sum_exp = 0.;
+    for (var i = 0u; i < arrayLength(&positions); i++) {
+        let pos = (camera.view_matrix * vec4<f32>(positions[i], 1.)).xyz;
+        let dist = distance(pos, ray_pos);
+        sum_exp += exp(alpha * dist);
+    }
+    var gradient = vec3<f32>(0., 0., 0.);
+    for (var i = 0u; i < arrayLength(&positions); i++) {
+        let pos = (camera.view_matrix * vec4<f32>(positions[i], 1.)).xyz;
+        let dist = distance(pos, ray_pos);
+        let partial_derivative = exp(dist * alpha) / sum_exp;
+        let dist_gradient = -normalize(pos - ray_pos);
+        gradient += partial_derivative * dist_gradient;
+    }
+    return gradient;
+}
+
+// pub fn log_sum_exp_grad(points: &[DVec2], alpha: f64) -> DVec2 {
+//     let distances = points.iter().map(|v| v.length());
+//     let sum_exp: f64 = distances.clone().map(|v| (v * alpha).exp()).sum();
+//     let partial_derivatives = distances.map(|v| (v * alpha).exp() / sum_exp);
+//     let dist_gradients = points.iter().map(|v| -v.normalize());
+//     let gradient: DVec2 = dist_gradients
+//         .zip(partial_derivatives)
+//         .map(|(pd, dg)| dg * pd)
+//         .fold(DVec2::ZERO, |a, v| a + v);
+//     gradient
+// }

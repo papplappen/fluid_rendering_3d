@@ -27,7 +27,7 @@ fn main() {
     let (camera, camera_bind_group_layout) = Camera::create_camera(&env.device, &env.config);
 
     let (simulation_state, simulation_bind_group_layout) = SimulationState::create_simulation(
-        vec![vec3(50.0, 50.0, 50.0), vec3(100.0, 100.0, 100.0)],
+        vec![vec3(50.0, 50.0, 50.0), vec3(80., 80., 80.)],
         &env.device,
     );
 

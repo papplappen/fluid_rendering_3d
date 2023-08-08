@@ -26,8 +26,8 @@ impl Camera {
         device: &Device,
         config: &SurfaceConfiguration,
     ) -> (Self, BindGroupLayout) {
-        let pos = 0.7 * vec3(-111.74516, 193.78638, -38.64965);
-        let dir = vec3(0.5124362, -0.8005198, 0.31076893);
+        let pos = vec3(50., 50., 200.);
+        let dir = vec3(0., 0., -1.);
         let screen_height = config.height as f32;
         let screen_dist = (0.5 * screen_height) / (FOV_Y * 0.5).to_radians().tan();
         let entity = CameraEntity {
@@ -44,6 +44,7 @@ impl Camera {
             contents: bytemuck::bytes_of(&CameraUniform {
                 entity,
                 view_matrix,
+                inverse_view_matrix: view_matrix.inverse(),
             }),
             usage: BufferUsages::UNIFORM | BufferUsages::COPY_DST,
         });
@@ -94,6 +95,7 @@ impl Camera {
             bytemuck::bytes_of(&CameraUniform {
                 entity: self.entity,
                 view_matrix: self.view_matrix,
+                inverse_view_matrix: self.view_matrix.inverse(),
             }),
         );
     }
@@ -229,4 +231,5 @@ impl CameraController {
 struct CameraUniform {
     entity: CameraEntity,
     view_matrix: Mat4,
+    inverse_view_matrix: Mat4,
 }
