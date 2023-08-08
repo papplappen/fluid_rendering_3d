@@ -1,4 +1,4 @@
-const MAX_DISTANCE = 200.;
+const MAX_DISTANCE = 1000.;
 const MAX_STEPS: f32 = 100.;
 struct VertexOutput {
     @builtin(position) clip_position: vec4<f32>,

@@ -376,6 +376,7 @@ dependencies = [
  "image",
  "pollster",
  "rand",
+ "sph",
  "wgpu",
  "winit",
 ]
@@ -1219,6 +1220,14 @@ dependencies = [
  "wayland-client",
  "wayland-cursor",
  "wayland-protocols",
+]
+
+[[package]]
+name = "sph"
+version = "0.1.0"
+source = "git+https://github.com/Garbaz/sph.git#7ab47982eedcd1e234227b26f3c0f87decfc7cd6"
+dependencies = [
+ "glam",
 ]
 
 [[package]]

@@ -8,14 +8,14 @@ pub const DEFAULT_DELTA_TIME: f32 = 0.01;
 
 pub struct Config {
     alpha: f32,
-    min_dist: f32,
+    radius: f32,
 }
 
 impl Default for Config {
     fn default() -> Self {
         Self {
-            alpha: -0.1,
-            min_dist: 32.,
+            alpha: -0.2,
+            radius: 5.,
         }
     }
 }
@@ -30,7 +30,7 @@ impl From<&Config> for DrawShaderConfig {
     fn from(cfg: &Config) -> Self {
         Self {
             alpha: cfg.alpha,
-            min_dist: cfg.min_dist,
+            min_dist: cfg.radius,
         }
     }
 }

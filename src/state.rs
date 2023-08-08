@@ -79,5 +79,7 @@ impl State {
         })
     }
 
-    pub fn update_simulation(&mut self) {}
+    pub fn update_simulation(&mut self) {
+        self.simulation_state.update(&self.env.queue);
+    }
 }
