@@ -8,7 +8,6 @@ use wgpu::{
 use crate::{
     config::{Config, DrawShaderConfig},
     env::Environment,
-    simulation::SimulationState,
     vertex::{Vertex, SQUARE},
 };
 

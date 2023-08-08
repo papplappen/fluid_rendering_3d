@@ -1,3 +1,4 @@
+use bytemuck::{Pod, Zeroable};
 use glam::{vec3, Mat3, Mat4, Vec3};
 use wgpu::{
     util::DeviceExt, BindGroup, BindGroupEntry, BindGroupLayout, BindGroupLayoutEntry, Buffer,
@@ -8,9 +9,13 @@ use winit::event::{DeviceEvent, ElementState, KeyboardInput, VirtualKeyCode, Win
 const SPEED: f32 = 100.;
 const SHIFT_SPEED: f32 = 0.1 * SPEED;
 const SENS: f32 = 0.1;
+
+const FOV_Y: f32 = 45.; // ! DEGREES
+
+// * +X = Right; +Y = Up; +Z = Back
 pub struct Camera {
     pub entity: CameraEntity,
-    pub uniform: CameraUniform,
+    pub view_matrix: Mat4,
     pub controller: CameraController,
     pub bind_group: BindGroup,
     pub buffer: Buffer,
@@ -23,28 +28,31 @@ impl Camera {
     ) -> (Self, BindGroupLayout) {
         let pos = 0.7 * vec3(-111.74516, 193.78638, -38.64965);
         let dir = vec3(0.5124362, -0.8005198, 0.31076893);
-
+        let screen_height = config.height as f32;
+        let screen_dist = (0.5 * screen_height) / (FOV_Y * 0.5).to_radians().tan();
         let entity = CameraEntity {
             pos,
             dir: dir.normalize(),
             up: Vec3::Y,
-            aspect_ratio: config.width as f32 / config.height as f32,
-            fov_y: 45.0,
-            z_near: 1.,
-            z_far: 1000.0,
+            screen_dist,
+            screen_width: config.width as f32,
+            screen_height,
         };
-        let mut uniform = CameraUniform::new();
-        uniform.update(&entity);
+        let view_matrix = Mat4::look_to_rh(entity.pos, entity.dir, entity.up);
         let buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Camera Buffer"),
-            contents: bytemuck::cast_slice(&uniform.view_proj),
+            contents: bytemuck::bytes_of(&CameraUniform {
+                entity,
+                view_matrix,
+            }),
             usage: BufferUsages::UNIFORM | BufferUsages::COPY_DST,
         });
+
         let bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: Some("Camera Bind Group Layout"),
             entries: &[BindGroupLayoutEntry {
                 binding: 0,
-                visibility: ShaderStages::VERTEX,
+                visibility: ShaderStages::FRAGMENT,
                 ty: wgpu::BindingType::Buffer {
                     ty: wgpu::BufferBindingType::Uniform,
                     has_dynamic_offset: false,
@@ -66,10 +74,10 @@ impl Camera {
         (
             Self {
                 entity,
-                uniform,
                 controller,
                 bind_group,
                 buffer,
+                view_matrix,
             },
             bind_group_layout,
         )
@@ -78,61 +86,29 @@ impl Camera {
     pub fn update(&mut self, delta: f32, queue: &Queue) {
         self.controller
             .update_camera_entity(&mut self.entity, delta);
-        self.uniform.update(&self.entity);
+        self.view_matrix = Mat4::look_to_rh(self.entity.pos, self.entity.dir, self.entity.up);
+
         queue.write_buffer(
             &self.buffer,
             0,
-            bytemuck::cast_slice(&[self.uniform.view_proj]),
+            bytemuck::bytes_of(&CameraUniform {
+                entity: self.entity,
+                view_matrix: self.view_matrix,
+            }),
         );
-    }
-}
-#[derive(Debug)]
-pub struct CameraEntity {
-    pub pos: Vec3,
-    pub dir: Vec3,
-    pub up: Vec3,
-    pub aspect_ratio: f32,
-    pub fov_y: f32, // ! DEGREES
-    pub z_near: f32,
-    pub z_far: f32,
-}
-
-impl CameraEntity {
-    pub fn build_view_projection_matrix(&self) -> CameraUniform {
-        let view = Mat4::look_to_rh(self.pos, self.dir, self.up);
-        let proj = Mat4::perspective_rh(
-            self.fov_y.to_radians(),
-            self.aspect_ratio,
-            self.z_near,
-            self.z_far,
-        );
-
-        CameraUniform {
-            view_proj: (proj * view).to_cols_array_2d(),
-        }
     }
 }
 #[repr(C)]
-pub struct CameraUniform {
-    pub view_proj: [[f32; 4]; 4],
+#[derive(Debug, Pod, Clone, Copy, Zeroable)]
+pub struct CameraEntity {
+    pub pos: Vec3,
+    pub screen_width: f32,
+    pub dir: Vec3,
+    pub screen_height: f32,
+    pub up: Vec3,
+    pub screen_dist: f32,
 }
 
-impl CameraUniform {
-    pub fn new() -> Self {
-        Self {
-            view_proj: Mat4::IDENTITY.to_cols_array_2d(),
-        }
-    }
-    pub fn update(&mut self, camera_entity: &CameraEntity) {
-        *self = camera_entity.build_view_projection_matrix();
-    }
-}
-
-impl Default for CameraUniform {
-    fn default() -> Self {
-        Self::new()
-    }
-}
 pub struct CameraController {
     speed: f32,
     sens: f32,
@@ -247,4 +223,10 @@ impl CameraController {
             camera_entity.pos -= right;
         }
     }
+}
+#[repr(C)]
+#[derive(Pod, Clone, Copy, Zeroable)]
+struct CameraUniform {
+    entity: CameraEntity,
+    view_matrix: Mat4,
 }
