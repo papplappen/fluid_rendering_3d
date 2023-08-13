@@ -10,7 +10,7 @@ pub(crate) mod vertex;
 use camera::Camera;
 use config::{Config, DEFAULT_DELTA_TIME};
 use env::Environment;
-use glam::{vec3a, Vec3A};
+use glam::vec3a;
 use pollster::FutureExt;
 use render::RenderState;
 use simulation::SimulationState;

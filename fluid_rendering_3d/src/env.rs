@@ -18,8 +18,8 @@ pub struct Environment {
 }
 
 const WINDOW_SIZE: PhysicalSize<u32> = PhysicalSize {
-    width: 1600,
-    height: 900,
+    width: 640,
+    height: 480,
 };
 
 impl Environment {
