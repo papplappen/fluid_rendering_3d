@@ -1,0 +1,5 @@
+[workspace]
+members = [
+  "sph",
+  "fluid_rendering_3d"
+]

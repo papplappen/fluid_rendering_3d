@@ -13,7 +13,7 @@ pollster = "0.3"
 rand = "0.8.5"
 wgpu = "0.17"
 winit = "0.28"
-sph = { git = "https://github.com/Garbaz/sph.git" }
+sph = { path = "../sph" }
 # Enable a small amount of optimization in debug mode
 [profile.dev]
 opt-level = 1
