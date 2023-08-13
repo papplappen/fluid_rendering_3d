@@ -1,3 +1,5 @@
+use glam::Vec3;
+use sph::{fluid::Fluid, sph::SPH};
 use wgpu::{
     util::{BufferInitDescriptor, DeviceExt},
     BindGroup, BindGroupDescriptor, BindGroupEntry, BindGroupLayout, BindGroupLayoutEntry, Buffer,
@@ -7,19 +9,33 @@ use wgpu::{
 pub const DEFAULT_DELTA_TIME: f32 = 0.01;
 
 pub struct Config {
-    alpha: f32,
-    radius: f32,
+    sph: SPH,
+    rest_density: f32,
+    kinematic_viscosity: f32,
+    stiffness: f32,
+    gravity: Vec3,
 }
 
 impl Default for Config {
     fn default() -> Self {
+        sph::fluid::bob();
+        let Fluid {
+            particles,
+            sph,
+            rest_density,
+            kinematic_viscosity,
+            stiffness,
+            gravity,
+        } = Fluid::default();
         Self {
-            alpha: -0.2,
-            radius: 5.,
+            sph,
+            rest_density,
+            kinematic_viscosity,
+            stiffness,
+            gravity: gravity.into(),
         }
     }
 }
-
 #[repr(C)]
 #[derive(bytemuck::Pod, bytemuck::Zeroable, Clone, Copy)]
 pub struct DrawShaderConfig {
@@ -28,10 +44,7 @@ pub struct DrawShaderConfig {
 }
 impl From<&Config> for DrawShaderConfig {
     fn from(cfg: &Config) -> Self {
-        Self {
-            alpha: cfg.alpha,
-            min_dist: cfg.radius,
-        }
+        Self {}
     }
 }
 impl DrawShaderConfig {
