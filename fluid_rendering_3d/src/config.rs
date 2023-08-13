@@ -9,18 +9,18 @@ use wgpu::{
 pub const DEFAULT_DELTA_TIME: f32 = 0.01;
 
 pub struct Config {
-    sph: SPH,
-    rest_density: f32,
-    kinematic_viscosity: f32,
-    stiffness: f32,
-    gravity: Vec3,
+    pub sph: SPH,
+    pub rest_density: f32,
+    pub kinematic_viscosity: f32,
+    pub stiffness: f32,
+    pub gravity: Vec3,
 }
 
 impl Default for Config {
     fn default() -> Self {
         sph::fluid::bob();
         let Fluid {
-            particles,
+            particles: _,
             sph,
             rest_density,
             kinematic_viscosity,
@@ -39,12 +39,13 @@ impl Default for Config {
 #[repr(C)]
 #[derive(bytemuck::Pod, bytemuck::Zeroable, Clone, Copy)]
 pub struct DrawShaderConfig {
+    h: f32,
     alpha: f32,
-    min_dist: f32,
 }
 impl From<&Config> for DrawShaderConfig {
     fn from(cfg: &Config) -> Self {
-        Self {}
+        let SPH { h, alpha } = cfg.sph;
+        Self { h, alpha }
     }
 }
 impl DrawShaderConfig {

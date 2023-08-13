@@ -28,8 +28,8 @@ impl Particle {
 }
 
 pub struct SPH {
-    h: f32,
-    alpha: f32,
+    pub h: f32,
+    pub alpha: f32,
 }
 
 impl Default for SPH {
@@ -44,11 +44,6 @@ impl SPH {
             h,
             alpha: 1. / (4. * PI * h * h * h),
         }
-    }
-
-    #[inline(always)]
-    pub fn h(&self) -> f32 {
-        self.h
     }
 
     fn kernel(&self, xi: Vec3A, xj: Vec3A) -> f32 {

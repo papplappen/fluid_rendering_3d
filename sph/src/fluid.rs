@@ -50,11 +50,11 @@ impl Fluid {
     }
 
     pub fn step(&mut self, dt: f32) {
-        let index = Index::new(&self.particles, 2. * self.sph.h(), 64);
+        let index = Index::new(&self.particles, 2. * self.sph.h, 64);
         let neighbourhoods = self
             .particles
             .iter()
-            .map(|pi| index.neighbourhood(pi.pos, 2. * self.sph.h()))
+            .map(|pi| index.neighbourhood(pi.pos, 2. * self.sph.h))
             .collect::<Vec<_>>();
 
         let densities = self

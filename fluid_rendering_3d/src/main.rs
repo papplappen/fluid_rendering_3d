@@ -36,9 +36,16 @@ fn main() {
     //     Particle::new(vec3a(80., 80., 80.), 1., true),
     //     Particle::new(vec3a(80., 80., 80.), 1., true),
     // ];
-    let mut particles = cube_in_box(2);
+    let particles = cube_in_box(2);
     // particles.push(Particle::new(vec3a(0., 0., 0.), 1., true));
-    let fluid = Fluid::new(particles, 1.0, 1., 1.0e-3, 5000.0, -9.81 * Vec3A::Z);
+    let fluid = Fluid::new(
+        particles,
+        config.sph.h,
+        config.rest_density,
+        config.kinematic_viscosity,
+        config.stiffness,
+        config.gravity.into(),
+    );
     let (simulation_state, simulation_bind_group_layout) =
         SimulationState::create_simulation(fluid, &env.device);
 
