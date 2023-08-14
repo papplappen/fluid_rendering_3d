@@ -32,12 +32,6 @@ pub struct SPH {
     pub alpha: f32,
 }
 
-impl Default for SPH {
-    fn default() -> Self {
-        Self::new(1.)
-    }
-}
-
 impl SPH {
     pub fn new(h: f32) -> Self {
         Self {
@@ -47,7 +41,7 @@ impl SPH {
     }
 
     fn kernel(&self, xi: Vec3A, xj: Vec3A) -> f32 {
-        let q = xi.distance(xj);
+        let q = xi.distance(xj) / self.h;
         let t1 = (1. - q).max(0.);
         let t2 = (2. - q).max(0.);
         self.alpha * (t2 * t2 * t2 - 4. * t1 * t1 * t1)

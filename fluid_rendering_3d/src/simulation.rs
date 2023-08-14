@@ -22,7 +22,7 @@ impl SimulationState {
                 &fluid
                     .particles
                     .iter()
-                    .map(|p| Vec3::from(p.pos) * 10.)
+                    .map(|p| Vec3::from(p.pos))
                     .collect::<Vec<_>>(),
             )),
             usage: BufferUsages::STORAGE | BufferUsages::COPY_DST,
@@ -70,7 +70,7 @@ impl SimulationState {
                     .fluid
                     .particles
                     .iter()
-                    .map(|p| Vec3::from(p.pos) * 10.)
+                    .map(|p| Vec3::from(p.pos))
                     .collect::<Vec<_>>(),
             )),
         )

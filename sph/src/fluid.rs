@@ -18,18 +18,15 @@ impl Default for Fluid {
     fn default() -> Self {
         Self {
             particles: Default::default(),
-            sph: Default::default(),
+            sph: SPH::new(1.),
             rest_density: 1.,
             kinematic_viscosity: 1.0e-3,
             stiffness: 5000.0,
-            gravity: -9.81 * Vec3A::Z,
+            gravity: 9.81 * Vec3A::NEG_Y,
         }
     }
 }
 
-pub fn bob() {
-    println!("MOIN");
-}
 impl Fluid {
     pub fn new(
         particles: Vec<Particle>,

@@ -1,6 +1,6 @@
-const MAX_DISTANCE = 1000.;
+const MAX_DISTANCE = 200.;
 const MAX_STEPS: f32 = 100.;
-const DENSITY_THRESHOLD: f32 = .1;
+const DENSITY_THRESHOLD: f32 = 0.2;
 struct VertexOutput {
     @builtin(position) clip_position: vec4<f32>,
 };
@@ -46,44 +46,55 @@ fn vs_main(
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let ray_dir = normalize(vec3<f32>(in.clip_position.x - camera.screen_width * 0.5, -in.clip_position.y + camera.screen_height * 0.5, -camera.screen_dist));
 
+    var bit_mask: array<bool,100>;
+    for (var i = 0u; i < arrayLength(&positions); i++) {
+        let pos = (camera.view_matrix * vec4<f32>(positions[i], 1.)).xyz;
+        let projection = pos - ray_dir * dot(pos, ray_dir);
+        bit_mask[i] = length(projection) < 2. * config.h;
+    }
     var ray_pos = vec3<f32>(0., 0., 0.);
     for (var i = 0u; i < 200u; i++) {
-        let min_dist = min_distance(ray_pos);
+        let min_dist = min_distance(ray_pos, &bit_mask);
         if min_dist >= MAX_DISTANCE {
             return vec4<f32>(1., 0., 0., 1.);
         }
-        let density = kernel_sum(ray_pos);
+        let density = kernel_sum(ray_pos, &bit_mask);
         if density > DENSITY_THRESHOLD {
             // return camera.inverse_view_matrix * (vec4<f32>(normalize(log_sum_exp_grad(ray_pos, camera.view_matrix, config.alpha)), 0.0));
-            return vec4<f32>(0., density, 0., 1.);
+            return vec4<f32>(0., 0., density, 1.);
         }
-        // ray_pos += ray_dir * max(min_dist - 2. * config.h, config.h * 0.1);
-        ray_pos += ray_dir * config.h;
+        ray_pos += ray_dir * max(min_dist - 2. * config.h, config.h * 0.1);
+        // ray_pos += ray_dir * config.h;
     }
     return vec4<f32>(0., 1., 0., 1.);
 }
-fn min_distance(ray_pos: vec3<f32>) -> f32 {
+fn min_distance(ray_pos: vec3<f32>, bit_mask: ptr<function,array<bool,100>>) -> f32 {
     var minimum = 1. / 0.;
     for (var i = 0u; i < arrayLength(&positions); i++) {
-        let pos = (camera.view_matrix * vec4<f32>(positions[i], 1.)).xyz;
-        let dist = distance(pos, ray_pos) ;
-        minimum = min(minimum, dist);
+        if (*bit_mask)[i] {
+            let pos = (camera.view_matrix * vec4<f32>(positions[i], 1.)).xyz;
+            let dist = distance(pos, ray_pos) ;
+            minimum = min(minimum, dist);
+        }
     }
     return minimum;
 }
 
 
-fn kernel_sum(ray_pos: vec3<f32>) -> f32 {
+fn kernel_sum(ray_pos: vec3<f32>, bit_mask: ptr<function,array<bool,100>>) -> f32 {
     var sum = 0.;
     for (var i = 0u; i < arrayLength(&positions); i++) {
-        let pos = (camera.view_matrix * vec4<f32>(positions[i], 1.)).xyz;
-        let dist = distance(pos, ray_pos) ;
-        sum += kernel(dist);
+        if (*bit_mask)[i] {
+            let pos = (camera.view_matrix * vec4<f32>(positions[i], 1.)).xyz;
+            let dist = distance(pos, ray_pos) ;
+            sum += kernel(dist);
+        }
     }
     return sum;
 }
 
-fn kernel(q: f32) -> f32 {
+fn kernel(dist: f32) -> f32 {
+    let q = dist / config.h;
     let t1 = max(1. - q, 0.);
     let t2 = max(2. - q, 0.);
     return config.alpha * (t2 * t2 * t2 - 4. * t1 * t1 * t1);

@@ -60,13 +60,12 @@ impl State {
                         &self.env,
                         &self.camera.bind_group,
                     );
-                }
-                Event::RedrawEventsCleared => {
                     // * UPDATE DELTA TIME
                     self.delta_time = start.elapsed().as_secs_f32();
                     println!("{}", 1. / self.delta_time);
                     start = Instant::now();
                 }
+                Event::RedrawEventsCleared => {}
 
                 Event::DeviceEvent {
                     device_id: _,

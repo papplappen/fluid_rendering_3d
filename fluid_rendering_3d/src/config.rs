@@ -18,7 +18,6 @@ pub struct Config {
 
 impl Default for Config {
     fn default() -> Self {
-        sph::fluid::bob();
         let Fluid {
             particles: _,
             sph,

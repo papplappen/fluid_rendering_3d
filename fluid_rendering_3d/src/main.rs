@@ -46,6 +46,9 @@ fn main() {
         config.stiffness,
         config.gravity.into(),
     );
+    for p in &fluid.particles {
+        println!("{}", fluid.sph.density(&fluid.particles, |p| p.mass, p.pos));
+    }
     let (simulation_state, simulation_bind_group_layout) =
         SimulationState::create_simulation(fluid, &env.device);
 

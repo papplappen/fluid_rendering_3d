@@ -26,7 +26,7 @@ impl Camera {
         device: &Device,
         config: &SurfaceConfiguration,
     ) -> (Self, BindGroupLayout) {
-        let pos = 0.7 * vec3(-111.74516, 193.78638, -38.64965);
+        let pos = 0.7 * vec3(-11.174516, 19.378638, -3.864965);
         let dir = vec3(0.5124362, -0.8005198, 0.31076893);
         let screen_height = config.height as f32;
         let screen_dist = (0.5 * screen_height) / (FOV_Y * 0.5).to_radians().tan();
@@ -38,7 +38,8 @@ impl Camera {
             screen_width: config.width as f32,
             screen_height,
         };
-        let view_matrix = Mat4::look_to_rh(entity.pos, entity.dir, entity.up);
+        let view_matrix = dbg!(Mat4::look_to_rh(entity.pos, entity.dir, entity.up));
+
         let buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Camera Buffer"),
             contents: bytemuck::bytes_of(&CameraUniform {
